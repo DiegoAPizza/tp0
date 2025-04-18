@@ -16,13 +16,24 @@
 typedef enum
 {
 	MENSAJE,
-	PAQUETE
+	PAQUETE,
+	PCB
 }op_code;
 
 extern t_log* logger;
-
+typedef struct {
+	uint8_t ax,bx,cx,dx;
+	uint32_t pc,eax,ebx,ecx,edx,si,di;
+}t_cpu;
+typedef struct 
+{
+	int pid,pc,quantum;
+	t_cpu registro;
+}t_pcb;
+void mostrar_cpu(t_cpu,t_log*);
+void mostrar_pcb(t_pcb*,t_log*);
 void* recibir_buffer(int*, int);
-
+t_pcb* recibir_pcb(int);
 int iniciar_servidor(void);
 int esperar_cliente(int);
 t_list* recibir_paquete(int);

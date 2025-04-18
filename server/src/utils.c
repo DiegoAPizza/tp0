@@ -4,8 +4,6 @@ t_log* logger;
 
 int iniciar_servidor(void)
 {
-	// Quitar esta línea cuando hayamos terminado de implementar la funcion
-	assert(!"no implementado!");
 
 	int socket_servidor;
 
@@ -19,26 +17,105 @@ int iniciar_servidor(void)
 	getaddrinfo(NULL, PUERTO, &hints, &servinfo);
 
 	// Creamos el socket de escucha del servidor
-
+	socket_servidor=socket(servinfo->ai_family,
+							servinfo->ai_socktype,
+							servinfo->ai_protocol);
 	// Asociamos el socket a un puerto
-
+	bind(socket_servidor,servinfo->ai_addr,servinfo->ai_addrlen);
 	// Escuchamos las conexiones entrantes
-
+	listen(socket_servidor,SOMAXCONN);
 	freeaddrinfo(servinfo);
 	log_trace(logger, "Listo para escuchar a mi cliente");
-
 	return socket_servidor;
 }
+void mostrar_pcb(t_pcb* pcb,t_log* logger){
+
+	log_info(logger,"PID : %d",pcb->pid);
+	log_info(logger,"PC : %d",pcb->pc);
+	log_info(logger,"QUANTUM : %d",pcb->quantum);
+	mostrar_cpu(pcb->registro,logger);
+}
+
+void mostrar_cpu(t_cpu cpu,t_log* logger){
+	log_info(logger,"Registro  AX: %d",cpu.ax);
+	log_info(logger,"Registro  BX: %d",cpu.bx);
+	log_info(logger,"Registro  CX: %d",cpu.cx);
+	log_info(logger,"Registro  DX: %d",cpu.dx);
+	log_info(logger,"Registro  EAX: %d",cpu.eax);
+	log_info(logger,"Registro  EBX: %d",cpu.ebx);
+	log_info(logger,"Registro  ECX: %d",cpu.ecx);
+	log_info(logger,"Registro  EDX: %d",cpu.edx);
+	log_info(logger,"Registro  SI: %d",cpu.si);
+	log_info(logger,"Registro  DI: %d",cpu.di);
+	log_info(logger,"Registro  Pc: %d",cpu.pc);
+}
+
+t_pcb* recibir_pcb(int socket_cliente){
+	t_pcb* pcb_n;
+	 int size;
+	 int desplazamiento=0;
+	 void* buffer;
+	 buffer=recibir_buffer(&size,socket_cliente);
+	 pcb_n = malloc(sizeof(t_pcb));
+	memcpy(&(pcb_n->pid), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&(pcb_n->pc), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    memcpy(&(pcb_n->quantum), buffer + desplazamiento, sizeof(int));
+    desplazamiento += sizeof(int);
+
+    // Deserializar los registros de la CPU
+    memcpy(&(pcb_n->registro.ax), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb_n->registro.bx), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb_n->registro.cx), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb_n->registro.dx), buffer + desplazamiento, sizeof(uint8_t));
+    desplazamiento += sizeof(uint8_t);
+
+    memcpy(&(pcb_n->registro.pc), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.eax), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.ebx), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.ecx), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.edx), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.si), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    memcpy(&(pcb_n->registro.di), buffer + desplazamiento, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+
+    // Liberar el buffer una vez que todos los datos se han copiado
+    free(buffer);
+	
+	return pcb_n;
+}
+
+
 
 int esperar_cliente(int socket_servidor)
 {
-	// Quitar esta línea cuando hayamos terminado de implementar la funcion
-	assert(!"no implementado!");
+	
 
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
 	log_info(logger, "Se conecto un cliente!");
-
+	socket_cliente=accept(socket_servidor,NULL,NULL);
 	return socket_cliente;
 }
 
